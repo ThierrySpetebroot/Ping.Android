@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">Connectivity Tester</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_history">Captured History</string>
+
+    <string name="target_ip_input_label">target IP</string>
+    <string name="target_ip_input">target IP address</string>
+
+    <string name="action_probe__start">Start Probing</string>
+    <string name="action_probe__stop">Stop Probing</string>
+
+    <string name="error_invalid_target_ip">Invalid IP address</string>
+
+    <string name="ping_service" >Ping Service</string>
+</resources>

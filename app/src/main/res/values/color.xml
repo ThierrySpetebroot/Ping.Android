@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="active_background">@android:color/holo_blue_light</color>
+
+    <color name="success_background">#64eaffd1</color>
+    <color name="error_background">#64ffd1d1</color>
+    <color name="no_background">@android:color/transparent</color>
+</resources>
