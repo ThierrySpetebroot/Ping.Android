@@ -16,17 +16,25 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
 import android.widget.Toast;
+
+import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
 
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 import fr.inria.sop.diana.qoe.pingandroid.tasks.SavePingResultTask;
 
 
 public class MainActivity extends Activity {
+
+    private static final int PING_WAIT_TIME = 500;
 
     public InetAddress targetAddress = null;
 
@@ -140,7 +148,7 @@ public class MainActivity extends Activity {
                 Log.i("Main", "Ping Service Connected");
                 pingServiceBounded = true;
                 pingService = (PingService.PingServiceBinder) service;
-                pingService.init(new PingCommand(), 5000);
+                pingService.init(new PingCommand(), PING_WAIT_TIME);
 
                 // register Ping Service Handlers
                 registerPingServiceHandlers();
@@ -243,9 +251,45 @@ public class MainActivity extends Activity {
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // Ping Service Event Handling
     //  UI
+    private static HashMap<Integer, Integer> DATA_SET_COLORS;
     public class PlotHandler implements IPingCompletedEventHandler, IPingSessionStartedEventHandler {
 
-        private TextView out = null;
+        private static final float WINDOW_SIZE = 15;
+        private static final int AVG_RTT_DATA_SET_INDEX = 0;
+        private static final int MIN_RTT_DATA_SET_INDEX = 1;
+        private static final int MAX_RTT_DATA_SET_INDEX = 2;
+
+        private int getColor(int key) {
+            return MainActivity.this.getResources().getColor(key);
+        }
+
+        private LineChart plot;
+
+        private ArrayList<Entry> avgRttEntries;
+        private ArrayList<Entry> minRttEntries;
+        private ArrayList<Entry> maxRttEntries;
+        private LineData data;
+
+        public PlotHandler() {
+            // prepare color map
+            if(DATA_SET_COLORS == null) {
+                DATA_SET_COLORS = new HashMap<>();
+                DATA_SET_COLORS.put(AVG_RTT_DATA_SET_INDEX, getColor(R.color.avg_rtt));
+                DATA_SET_COLORS.put(MIN_RTT_DATA_SET_INDEX, getColor(R.color.min_rtt));
+                DATA_SET_COLORS.put(MAX_RTT_DATA_SET_INDEX, getColor(R.color.max_rtt));
+            }
+        }
+
+        private void appendPointToChart() {
+            // TODO
+        }
+
+        private void setDataSetStyle(LineDataSet dataSet, int dataSetIndex) {
+            dataSet.setLineWidth(4f);
+            int lineColor = DATA_SET_COLORS.get(dataSetIndex);
+            dataSet.setCircleColor(lineColor);
+            dataSet.setColor(lineColor);
+        }
 
         public void onPingSessionStarted(PingService.PingServiceBinder source) {
             // initialize Results UI #TODO
@@ -253,11 +297,39 @@ public class MainActivity extends Activity {
             MainActivity.this.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
+                    // reset Layout
                     RelativeLayout layout = (RelativeLayout) findViewById(R.id.results_layout);
                     layout.removeAllViews();
 
-                    out = new TextView(MainActivity.this);
-                    layout.addView(out);
+                    // create LineChart
+                    plot = new LineChart(MainActivity.this);
+                    plot.setDescription("RTT plot (ms)");
+                    layout.addView(plot);
+
+                    // chart customization
+                    plot.setNoDataText("Pinging...");
+                    plot.setNoDataTextDescription("Pinging...");
+
+                    // init data collections
+                    avgRttEntries = new ArrayList<>();
+                    LineDataSet avgRttSet = new LineDataSet(avgRttEntries, "Avg RTT");
+                    LineDataSet minRttSet = new LineDataSet(minRttEntries, "Min RTT");
+                    LineDataSet maxRttSet = new LineDataSet(maxRttEntries, "Max RTT");
+                    setDataSetStyle(avgRttSet, AVG_RTT_DATA_SET_INDEX);
+                    setDataSetStyle(minRttSet, MIN_RTT_DATA_SET_INDEX);
+                    setDataSetStyle(maxRttSet, MAX_RTT_DATA_SET_INDEX);
+                    data = new LineData();
+                    data.addDataSet(avgRttSet);
+                    data.addDataSet(minRttSet);
+                    data.addDataSet(maxRttSet);
+
+                    for(int i = 0; i < WINDOW_SIZE; i++) {
+                        data.addXValue("");
+                        data.addEntry(new Entry(0, i), AVG_RTT_DATA_SET_INDEX);
+                        data.addEntry(new Entry(0, i), MIN_RTT_DATA_SET_INDEX);
+                        data.addEntry(new Entry(0, i), MAX_RTT_DATA_SET_INDEX);
+                    }
+                    plot.setData(data);
                 }
             });
         }
@@ -266,10 +338,33 @@ public class MainActivity extends Activity {
         public void onPingCompleted(PingService.PingServiceBinder source, final IPingResult result) {
             // append point in graph
             MainActivity.this.runOnUiThread(new Runnable() {
+
                 @Override
                 public void run() {
-                    out.append(result.toString());
+                    // Ping Toast
                     Toast.makeText(MainActivity.this, "PING", Toast.LENGTH_SHORT).show();
+
+                    //LineDataSet set = data.getDataSetByIndex(AVG_RTT_DATA_SET_INDEX);
+
+                    // Append Point
+                    int index = avgRttEntries.size();
+                    data.addXValue("");
+                    data.addEntry(new Entry(result.getAvgRtt(), index), AVG_RTT_DATA_SET_INDEX);
+                    data.addEntry(new Entry(result.getMinRtt(), index), MIN_RTT_DATA_SET_INDEX);
+                    data.addEntry(new Entry(result.getMaxRtt(), index), MAX_RTT_DATA_SET_INDEX);
+
+                    // remove obsolete data
+//                    if(avgRttEntries.size() > WINDOW_SIZE) {
+//                        data.removeEntry(0, AVG_RTT_DATA_SET_INDEX);
+//                    }
+
+                    // redraw Plot
+                    plot.notifyDataSetChanged();
+                    plot.invalidate();
+
+                    // set fixed window size
+                    plot.setVisibleXRange(WINDOW_SIZE);
+                    plot.moveViewToX(data.getXValCount() - WINDOW_SIZE);
                 }
             });
 

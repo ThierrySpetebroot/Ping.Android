@@ -5,4 +5,8 @@
     <color name="success_background">#64eaffd1</color>
     <color name="error_background">#64ffd1d1</color>
     <color name="no_background">@android:color/transparent</color>
+
+    <color name="min_rtt">#ffb3e4ff</color>
+    <color name="max_rtt">#ff1aafff</color>
+    <color name="avg_rtt">#ff66c9ff</color>
 </resources>

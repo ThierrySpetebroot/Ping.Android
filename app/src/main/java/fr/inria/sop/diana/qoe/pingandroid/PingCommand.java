@@ -14,7 +14,7 @@ import java.util.Scanner;
 
 
 public class PingCommand {
-    private static final int REQUEST_NUMBER = 10;
+    private static final int REQUEST_NUMBER = 4;
 
     private static ArrayList<String> BASE_CMD;
 
