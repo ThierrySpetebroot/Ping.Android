@@ -14,7 +14,7 @@ import java.util.Scanner;
 
 
 public class PingCommand {
-    private static final int REQUEST_NUMBER = 4;
+    private static final int REQUEST_NUMBER = 5;
 
     private static ArrayList<String> BASE_CMD;
 
@@ -132,6 +132,11 @@ public class PingCommand {
         float maxRttMs = Float.parseFloat(tmp[2]);
         float meanDeviation = Float.parseFloat(tmp[3]);
 
-        return new PingResult(packetsSent, packetsSent - packetsReceived, minRttMs, avgRttMs, maxRttMs, meanDeviation, address);
+        StringBuilder sb = new StringBuilder();
+        for(String row : rows) {
+            sb.append(row + '\n');
+        }
+
+        return new NativePingResult(packetsSent, packetsSent - packetsReceived, minRttMs, avgRttMs, maxRttMs, meanDeviation, address, sb.toString());
     }
 }

@@ -15,7 +15,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.RelativeLayout;
+import android.widget.TabHost;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.github.mikephil.charting.charts.LineChart;
@@ -47,12 +48,34 @@ public class MainActivity extends Activity {
         // setup UI
         setContentView(R.layout.activity_main);
         setupIpTextInput();
+        findViewById(R.id.results_layout).setVisibility(View.INVISIBLE);
+        setupTabs();
 
         // create Connection Manager
         // IConnectionManager<IPingResult, ? extends IDestination> connectionManager = new ConnectionManager(new IRemoteDestination[] { RemoteDestinationsEnum.STORAGE_SERVER });
 
         // create Ping Service Daemon
         startPingService();
+    }
+
+    private void setupTabs() {
+        TabHost tabHost = (TabHost) findViewById(R.id.tabHost);
+        tabHost.setup();
+
+        TabHost.TabSpec rttTab = tabHost.newTabSpec("RTT");
+        rttTab.setContent(R.id.rtt_view);
+        rttTab.setIndicator("RTT");
+        tabHost.addTab(rttTab);
+
+        TabHost.TabSpec lossTab = tabHost.newTabSpec("Loss");
+        lossTab.setContent(R.id.loss_view);
+        lossTab.setIndicator("LOSS");
+        tabHost.addTab(lossTab);
+
+        TabHost.TabSpec rawTab = tabHost.newTabSpec("Raw");
+        rawTab.setContent(R.id.text_view);
+        rawTab.setIndicator("RAW");
+        tabHost.addTab(rawTab);
     }
 
     @Override
@@ -254,84 +277,120 @@ public class MainActivity extends Activity {
     private static HashMap<Integer, Integer> DATA_SET_COLORS;
     public class PlotHandler implements IPingCompletedEventHandler, IPingSessionStartedEventHandler {
 
-        private static final float WINDOW_SIZE = 15;
+        private static final int WINDOW_SIZE = 15;
         private static final int AVG_RTT_DATA_SET_INDEX = 0;
         private static final int MIN_RTT_DATA_SET_INDEX = 1;
         private static final int MAX_RTT_DATA_SET_INDEX = 2;
+        private static final int LOSS_DATA_SET_INDEX = 0;
 
         private int getColor(int key) {
             return MainActivity.this.getResources().getColor(key);
         }
 
-        private LineChart plot;
+        private LineChart plotRtt  = (LineChart) findViewById(R.id.rtt_view);
+        private LineChart plotLoss = (LineChart) findViewById(R.id.loss_view);
+        private TextView  textOutput = (TextView) findViewById(R.id.text_view);
 
-        private ArrayList<Entry> avgRttEntries;
-        private ArrayList<Entry> minRttEntries;
-        private ArrayList<Entry> maxRttEntries;
-        private LineData data;
+        private LineData dataRtt;
+        private LineData dataLoss;
 
         public PlotHandler() {
-            // prepare color map
-            if(DATA_SET_COLORS == null) {
-                DATA_SET_COLORS = new HashMap<>();
-                DATA_SET_COLORS.put(AVG_RTT_DATA_SET_INDEX, getColor(R.color.avg_rtt));
-                DATA_SET_COLORS.put(MIN_RTT_DATA_SET_INDEX, getColor(R.color.min_rtt));
-                DATA_SET_COLORS.put(MAX_RTT_DATA_SET_INDEX, getColor(R.color.max_rtt));
+            // customize charts
+            plotRtt.setDescription("RTT plot (ms)");
+            plotRtt.setNoDataText("Pinging...");
+            plotRtt.setNoDataTextDescription("Pinging...");
+
+            plotLoss.setDescription("Loss Rate plot (%)");
+            plotLoss.setNoDataText("Pinging...");
+            plotLoss.setNoDataTextDescription("Pinging...");
+        }
+
+        private void appendPointToChart(LineChart chart, int dataSetIndex, float value) {
+            // remove obsolete data
+            LineData data = chart.getLineData();
+            LineDataSet set = data.getDataSetByIndex(dataSetIndex);
+            if(set.getEntryCount() >= WINDOW_SIZE) {
+                data.removeEntry(0, dataSetIndex);
+                slideEntryIndexes(set);
             }
+
+            // add data
+            int index = WINDOW_SIZE;
+            data.addEntry(new Entry(value, index), dataSetIndex);
         }
 
-        private void appendPointToChart() {
-            // TODO
+        private void appendPointToCharts(IPingResult result) {
+            Log.i("PLOT", "Append Point to Charts");
+            appendPointToChart(plotRtt, AVG_RTT_DATA_SET_INDEX, result.getAvgRtt());
+            appendPointToChart(plotRtt, MIN_RTT_DATA_SET_INDEX, result.getMinRtt());
+            appendPointToChart(plotRtt, MAX_RTT_DATA_SET_INDEX, result.getMaxRtt());
+            appendPointToChart(plotLoss, LOSS_DATA_SET_INDEX, ((float) result.getPacketsLost()) / result.getPacketSent());
         }
 
-        private void setDataSetStyle(LineDataSet dataSet, int dataSetIndex) {
+        private void setDataSetStyle(LineDataSet dataSet, int lineColor) {
             dataSet.setLineWidth(4f);
-            int lineColor = DATA_SET_COLORS.get(dataSetIndex);
             dataSet.setCircleColor(lineColor);
             dataSet.setColor(lineColor);
         }
 
         public void onPingSessionStarted(PingService.PingServiceBinder source) {
-            // initialize Results UI #TODO
+            // initialize Results UI
             Log.i("MAIN", "PING SESSION STARTED");
             MainActivity.this.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    // reset Layout
-                    RelativeLayout layout = (RelativeLayout) findViewById(R.id.results_layout);
-                    layout.removeAllViews();
+                    // show Result Layout
+                    findViewById(R.id.results_layout).setVisibility(View.VISIBLE);
 
-                    // create LineChart
-                    plot = new LineChart(MainActivity.this);
-                    plot.setDescription("RTT plot (ms)");
-                    layout.addView(plot);
-
-                    // chart customization
-                    plot.setNoDataText("Pinging...");
-                    plot.setNoDataTextDescription("Pinging...");
+                    // reset View
+                    plotRtt.clear();
+                    plotLoss.clear();
+                    textOutput.setText("");
 
                     // init data collections
-                    avgRttEntries = new ArrayList<>();
-                    LineDataSet avgRttSet = new LineDataSet(avgRttEntries, "Avg RTT");
-                    LineDataSet minRttSet = new LineDataSet(minRttEntries, "Min RTT");
-                    LineDataSet maxRttSet = new LineDataSet(maxRttEntries, "Max RTT");
-                    setDataSetStyle(avgRttSet, AVG_RTT_DATA_SET_INDEX);
-                    setDataSetStyle(minRttSet, MIN_RTT_DATA_SET_INDEX);
-                    setDataSetStyle(maxRttSet, MAX_RTT_DATA_SET_INDEX);
-                    data = new LineData();
-                    data.addDataSet(avgRttSet);
-                    data.addDataSet(minRttSet);
-                    data.addDataSet(maxRttSet);
-
-                    for (int i = 0; i < WINDOW_SIZE; i++) {
-                        data.addXValue("");
-                        data.addEntry(new Entry(0, i), AVG_RTT_DATA_SET_INDEX);
-                        data.addEntry(new Entry(0, i), MIN_RTT_DATA_SET_INDEX);
-                        data.addEntry(new Entry(0, i), MAX_RTT_DATA_SET_INDEX);
-                    }
-                    plot.setData(data);
+                    Log.i("PLOT", "Init Data Collections");
+                    initDataCollections();
                 }
             });
+        }
+
+        private void initDataCollections() {
+            // prepare RTT chart
+            ArrayList<Entry> avgRttEntries = new ArrayList<>();
+            ArrayList<Entry> minRttEntries = new ArrayList<>();
+            ArrayList<Entry> maxRttEntries = new ArrayList<>();
+            LineDataSet avgRttSet = new LineDataSet(avgRttEntries, "Avg RTT");
+            LineDataSet minRttSet = new LineDataSet(minRttEntries, "Min RTT");
+            LineDataSet maxRttSet = new LineDataSet(maxRttEntries, "Max RTT");
+            setDataSetStyle(avgRttSet, getColor(R.color.avg_rtt));
+            setDataSetStyle(minRttSet, getColor(R.color.min_rtt));
+            setDataSetStyle(maxRttSet, getColor(R.color.max_rtt));
+            dataRtt = new LineData();
+            dataRtt.addDataSet(avgRttSet);
+            dataRtt.addDataSet(minRttSet);
+            dataRtt.addDataSet(maxRttSet);
+
+            // prepare loss chart
+            ArrayList<Entry> lossEntries = new ArrayList<>();
+            LineDataSet lossSet = new LineDataSet(lossEntries, "Loss rate");
+            setDataSetStyle(lossSet, getColor(R.color.loss));
+            dataLoss = new LineData();
+            dataLoss.addDataSet(lossSet);
+
+            // generate sample data to fill the UI
+            Log.i("PLOT", "Generate Sample Data");
+            for (int i = 0; i < WINDOW_SIZE; i++) {
+                dataRtt.addXValue("");
+                dataRtt.addEntry(new Entry(0, i), AVG_RTT_DATA_SET_INDEX);
+                dataRtt.addEntry(new Entry(0, i), MIN_RTT_DATA_SET_INDEX);
+                dataRtt.addEntry(new Entry(0, i), MAX_RTT_DATA_SET_INDEX);
+
+                dataLoss.addXValue("");
+                dataLoss.addEntry(new Entry(0, i), LOSS_DATA_SET_INDEX);
+            }
+
+            plotRtt.setData(dataRtt);
+            plotLoss.setData(dataLoss);
         }
 
         @Override
@@ -341,45 +400,44 @@ public class MainActivity extends Activity {
 
                 @Override
                 public void run() {
+                    Log.i("PLOT", "Ping Completed");
                     // Ping Toast
-                    Toast.makeText(MainActivity.this, "PING", Toast.LENGTH_SHORT).show();
-
-                    //LineDataSet set = data.getDataSetByIndex(AVG_RTT_DATA_SET_INDEX);
+                    //Toast.makeText(MainActivity.this, "PING", Toast.LENGTH_SHORT).show();
 
                     // Append Point
-                    int index = avgRttEntries.size() + 1;
-                    data.addXValue("");
-                    data.addEntry(new Entry(result.getAvgRtt(), index), AVG_RTT_DATA_SET_INDEX);
-                    data.addEntry(new Entry(result.getMinRtt(), index), MIN_RTT_DATA_SET_INDEX);
-                    data.addEntry(new Entry(result.getMaxRtt(), index), MAX_RTT_DATA_SET_INDEX);
+                    appendPointToCharts(result);
 
-                    // remove obsolete data
-                    if(avgRttEntries.size() > WINDOW_SIZE) {
-                        data.removeEntry(0, AVG_RTT_DATA_SET_INDEX);
-                        data.removeEntry(0, MIN_RTT_DATA_SET_INDEX);
-                        data.removeEntry(0, MAX_RTT_DATA_SET_INDEX);
-                        data.removeXValue(0);
-
-                        // arrange Entry Indexes
-                        slideEntryIndexes(data.getDataSetByIndex(AVG_RTT_DATA_SET_INDEX));
-                        slideEntryIndexes(data.getDataSetByIndex(MIN_RTT_DATA_SET_INDEX));
-                        slideEntryIndexes(data.getDataSetByIndex(MAX_RTT_DATA_SET_INDEX));
+                    // Append Raw output to Raw Tab
+                    if(result instanceof NativePingResult) {
+                        textOutput.append(((NativePingResult) result).getRawOutput() + '\n');
+                    } else {
+                        textOutput.append(result.toString());
                     }
 
-                    // redraw Plot
-                    plot.notifyDataSetChanged();
-                    plot.invalidate();
-
-                    // set fixed window size
-                    System.out.println(data.getXValCount());
-                    plot.setVisibleXRange(WINDOW_SIZE);
+                    // update Charts
+                    updateCharts();
                 }
             });
 
         }
 
+        private void updateChart(LineChart chart) {
+            // redraw Plot
+            chart.notifyDataSetChanged();
+            chart.invalidate();
+
+            // set fixed window size
+            chart.setVisibleXRange(WINDOW_SIZE);
+        }
+
+        private void updateCharts() {
+            Log.i("PLOT", "Update Charts");
+            updateChart(plotRtt);
+            updateChart(plotLoss);
+        }
+
         private void slideEntryIndexes(LineDataSet dataSetByIndex) {
-            for(int i = 1; i < WINDOW_SIZE+1; i++) {
+            for(int i = 1; i < WINDOW_SIZE; i++) {
                 Entry e = dataSetByIndex.getEntryForXIndex(i);
 
                 if(e == null) continue;

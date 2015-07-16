@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="theme_primary">#ff1aafff</color>
+    <color name="theme_secondary">#ffb3e4ff</color>
     <color name="active_background">@android:color/holo_blue_light</color>
 
     <color name="success_background">#64eaffd1</color>
@@ -9,4 +11,6 @@
     <color name="min_rtt">#ffb3e4ff</color>
     <color name="max_rtt">#ff1aafff</color>
     <color name="avg_rtt">#ff66c9ff</color>
+
+    <color name="loss">#ffff6262</color>
 </resources>

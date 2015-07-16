@@ -33,13 +33,13 @@ public class PingService extends Service {
             return isPinging;
         }
 
-        public void init(PingCommand c, int repeat_every_ms) {
+        public void init(PingCommand c, int repeatEveryMs) {
             if(isPinging()) {
                 throw new IllegalStateException("Cannot change command while pinging, call stopPing() before.");
             }
 
             command = c;
-            ms = repeat_every_ms;
+            ms = repeatEveryMs;
         }
 
         public void startPing(final InetAddress address) {
