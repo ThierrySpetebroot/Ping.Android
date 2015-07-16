@@ -323,7 +323,7 @@ public class MainActivity extends Activity {
                     data.addDataSet(minRttSet);
                     data.addDataSet(maxRttSet);
 
-                    for(int i = 0; i < WINDOW_SIZE; i++) {
+                    for (int i = 0; i < WINDOW_SIZE; i++) {
                         data.addXValue("");
                         data.addEntry(new Entry(0, i), AVG_RTT_DATA_SET_INDEX);
                         data.addEntry(new Entry(0, i), MIN_RTT_DATA_SET_INDEX);
@@ -347,27 +347,45 @@ public class MainActivity extends Activity {
                     //LineDataSet set = data.getDataSetByIndex(AVG_RTT_DATA_SET_INDEX);
 
                     // Append Point
-                    int index = avgRttEntries.size();
+                    int index = avgRttEntries.size() + 1;
                     data.addXValue("");
                     data.addEntry(new Entry(result.getAvgRtt(), index), AVG_RTT_DATA_SET_INDEX);
                     data.addEntry(new Entry(result.getMinRtt(), index), MIN_RTT_DATA_SET_INDEX);
                     data.addEntry(new Entry(result.getMaxRtt(), index), MAX_RTT_DATA_SET_INDEX);
 
                     // remove obsolete data
-//                    if(avgRttEntries.size() > WINDOW_SIZE) {
-//                        data.removeEntry(0, AVG_RTT_DATA_SET_INDEX);
-//                    }
+                    if(avgRttEntries.size() > WINDOW_SIZE) {
+                        data.removeEntry(0, AVG_RTT_DATA_SET_INDEX);
+                        data.removeEntry(0, MIN_RTT_DATA_SET_INDEX);
+                        data.removeEntry(0, MAX_RTT_DATA_SET_INDEX);
+                        data.removeXValue(0);
+
+                        // arrange Entry Indexes
+                        slideEntryIndexes(data.getDataSetByIndex(AVG_RTT_DATA_SET_INDEX));
+                        slideEntryIndexes(data.getDataSetByIndex(MIN_RTT_DATA_SET_INDEX));
+                        slideEntryIndexes(data.getDataSetByIndex(MAX_RTT_DATA_SET_INDEX));
+                    }
 
                     // redraw Plot
                     plot.notifyDataSetChanged();
                     plot.invalidate();
 
                     // set fixed window size
+                    System.out.println(data.getXValCount());
                     plot.setVisibleXRange(WINDOW_SIZE);
-                    plot.moveViewToX(data.getXValCount() - WINDOW_SIZE);
                 }
             });
 
+        }
+
+        private void slideEntryIndexes(LineDataSet dataSetByIndex) {
+            for(int i = 1; i < WINDOW_SIZE+1; i++) {
+                Entry e = dataSetByIndex.getEntryForXIndex(i);
+
+                if(e == null) continue;
+
+                e.setXIndex(i - 1);
+            }
         }
     }
 

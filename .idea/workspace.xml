@@ -5,6 +5,9 @@
       <config />
     </shared>
   </component>
+  <component name="AndroidLogFilters">
+    <option name="TOOL_WINDOW_CONFIGURED_FILTER" value="Show only selected application" />
+  </component>
   <component name="ChangeListManager">
     <list default="true" id="f83b5238-3296-4c98-bffa-d08e3bc915a3" name="Default" comment="" />
     <ignored path="Ping.Android.iws" />
@@ -36,15 +39,15 @@
       <file leaf-file-name="MainActivity.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app/src/main/java/fr/inria/sop/diana/qoe/pingandroid/MainActivity.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.4076087">
-              <caret line="305" column="54" selection-start-line="305" selection-start-column="54" selection-end-line="305" selection-end-column="54" />
+            <state vertical-scroll-proportion="0.030797102">
+              <caret line="379" column="0" selection-start-line="379" selection-start-column="0" selection-end-line="379" selection-end-column="0" />
               <folding>
                 <element signature="e#9516#9517#0" expanded="true" />
                 <element signature="e#9593#9594#0" expanded="true" />
-                <element signature="e#10823#12646#0" expanded="true" />
-                <element signature="e#12645#12646#0" expanded="true" />
-                <element signature="e#12861#14109#0" expanded="true" />
-                <element signature="e#14108#14109#0" expanded="true" />
+                <element signature="e#10823#12647#0" expanded="true" />
+                <element signature="e#12646#12647#0" expanded="true" />
+                <element signature="e#12862#14603#0" expanded="true" />
+                <element signature="e#14602#14603#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -1867,7 +1870,7 @@
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3298969" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Captures" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Android" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.3298969" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Android" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.3298969" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Gradle Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Designer" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.24973261" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
@@ -1916,10 +1919,10 @@
           <folding>
             <element signature="e#9516#9517#0" expanded="true" />
             <element signature="e#9593#9594#0" expanded="true" />
-            <element signature="e#10823#12646#0" expanded="true" />
-            <element signature="e#12645#12646#0" expanded="true" />
-            <element signature="e#12861#14109#0" expanded="true" />
-            <element signature="e#14108#14109#0" expanded="true" />
+            <element signature="e#10823#12647#0" expanded="true" />
+            <element signature="e#12646#12647#0" expanded="true" />
+            <element signature="e#12862#14603#0" expanded="true" />
+            <element signature="e#14602#14603#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -2351,15 +2354,15 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/app/src/main/java/fr/inria/sop/diana/qoe/pingandroid/MainActivity.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.4076087">
-          <caret line="305" column="54" selection-start-line="305" selection-start-column="54" selection-end-line="305" selection-end-column="54" />
+        <state vertical-scroll-proportion="0.030797102">
+          <caret line="379" column="0" selection-start-line="379" selection-start-column="0" selection-end-line="379" selection-end-column="0" />
           <folding>
             <element signature="e#9516#9517#0" expanded="true" />
             <element signature="e#9593#9594#0" expanded="true" />
-            <element signature="e#10823#12646#0" expanded="true" />
-            <element signature="e#12645#12646#0" expanded="true" />
-            <element signature="e#12861#14109#0" expanded="true" />
-            <element signature="e#14108#14109#0" expanded="true" />
+            <element signature="e#10823#12647#0" expanded="true" />
+            <element signature="e#12646#12647#0" expanded="true" />
+            <element signature="e#12862#14603#0" expanded="true" />
+            <element signature="e#14602#14603#0" expanded="true" />
           </folding>
         </state>
       </provider>
