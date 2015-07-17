@@ -18,7 +18,7 @@ public class PingService extends Service {
     private boolean isPinging = false;
     private boolean isStopRequested = false;
 
-    protected PingCommand command;
+    protected IPingCommand command;
     protected int ms;
 
     protected IBinder binder = new PingServiceBinder();
@@ -28,12 +28,12 @@ public class PingService extends Service {
         return binder;
     }
 
-    protected class PingServiceBinder extends Binder {
+    protected class PingServiceBinder extends Binder implements IPingService {
         public boolean isPinging() {
             return isPinging;
         }
 
-        public void init(PingCommand c, int repeatEveryMs) {
+        public void init(IPingCommand c, int repeatEveryMs) {
             if(isPinging()) {
                 throw new IllegalStateException("Cannot change command while pinging, call stopPing() before.");
             }

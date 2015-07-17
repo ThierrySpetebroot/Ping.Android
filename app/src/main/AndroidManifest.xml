@@ -16,7 +16,7 @@
          android:configChanges="orientation|screenSize"
         -->
         <activity
-            android:name=".MainActivity"
+            android:name=".activities.MainActivity"
             android:configChanges="orientation|screenSize"
             android:label="@string/app_name" >
             <intent-filter>
@@ -33,11 +33,11 @@
         </service>
 
         <activity
-            android:name=".PingsHistoryActivity"
+            android:name=".activities.PingsHistoryActivity"
             android:label="@string/title_activity_pings_history" >
         </activity>
         <activity
-            android:name=".PingHistoryActivity"
+            android:name=".activities.PingHistoryActivity"
             android:label="@string/title_activity_ping_history" >
         </activity>
     </application>

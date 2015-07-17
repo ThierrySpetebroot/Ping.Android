@@ -1,6 +1,5 @@
 package fr.inria.sop.diana.qoe.pingandroid.tasks;
 
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -8,15 +7,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-import fr.inria.sop.diana.qoe.pingandroid.MainActivity;
+import fr.inria.sop.diana.qoe.pingandroid.activities.MainActivity;
 import fr.inria.sop.diana.qoe.pingandroid.IPingResult;
 
 /**
