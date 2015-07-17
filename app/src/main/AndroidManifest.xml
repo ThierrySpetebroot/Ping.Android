@@ -2,7 +2,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="fr.inria.sop.diana.qoe.pingandroid" >
 
-
     <!-- permission required to transfer data on the Internet -->
     <uses-permission android:name="android.permission.INTERNET" />
 
@@ -15,7 +14,7 @@
         <!--
         avoid to destroy Activity on device rotation:
          android:configChanges="orientation|screenSize"
-         -->
+        -->
         <activity
             android:name=".MainActivity"
             android:configChanges="orientation|screenSize"
@@ -30,8 +29,17 @@
         <!-- defined services -->
         <service
             android:name=".PingService"
-            android:label="@string/ping_service">
+            android:label="@string/ping_service" >
         </service>
+
+        <activity
+            android:name=".PingsHistoryActivity"
+            android:label="@string/title_activity_pings_history" >
+        </activity>
+        <activity
+            android:name=".PingHistoryActivity"
+            android:label="@string/title_activity_ping_history" >
+        </activity>
     </application>
 
 </manifest>

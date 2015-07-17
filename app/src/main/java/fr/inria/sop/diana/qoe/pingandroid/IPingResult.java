@@ -1,11 +1,12 @@
 package fr.inria.sop.diana.qoe.pingandroid;
 
+import java.io.Serializable;
 import java.net.InetAddress;
 
 /**
  * Created by User on 13/07/2015.
  */
-public interface IPingResult {
+public interface IPingResult extends Serializable {
     int getPacketsLost();
     int getPacketSent();
     float getMinRtt();

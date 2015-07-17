@@ -29,7 +29,10 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.UUID;
 
+import fr.inria.sop.diana.qoe.pingandroid.config.RemoteDestinationsEnum;
+import fr.inria.sop.diana.qoe.pingandroid.config.StaticRemoteResourcesEnum;
 import fr.inria.sop.diana.qoe.pingandroid.tasks.SavePingResultTask;
 
 
@@ -37,8 +40,12 @@ public class MainActivity extends Activity {
 
     private static final int PING_WAIT_TIME = 500;
 
-    public InetAddress targetAddress = null;
+    private InetAddress targetAddress = null;
 
+    private UUID currentSessionId;
+    public UUID getCurrentSessionId() {
+        return currentSessionId;
+    }
 
 
     @Override
@@ -103,8 +110,13 @@ public class MainActivity extends Activity {
 
         //noinspection SimplifiableIfStatement
         // #TODO handle all actions (define History tab)
-        if (id == R.id.action_settings) {
-            return true;
+        switch (id) {
+            case R.id.action_settings:
+                return true;
+            case R.id.action_history:
+                // switch to Activity
+                startActivity(new Intent(this, PingsHistoryActivity.class));
+                return true;
         }
 
         return super.onOptionsItemSelected(item);
@@ -158,6 +170,7 @@ public class MainActivity extends Activity {
                 Log.i("Main", "Ping Service Disconnected");
 
                 // unregister Ping Service Handlers
+                // TODO do it when the ping service is closed (this method is called when you change application - the service should keep on running)
                 unregisterPingServiceHandlers();
 
                 pingServiceBounded = false;
@@ -171,7 +184,9 @@ public class MainActivity extends Activity {
                 Log.i("Main", "Ping Service Connected");
                 pingServiceBounded = true;
                 pingService = (PingService.PingServiceBinder) service;
-                pingService.init(new PingCommand(), PING_WAIT_TIME);
+                if(!pingService.isPinging()) {
+                    pingService.init(new PingCommand(), PING_WAIT_TIME);
+                }
 
                 // register Ping Service Handlers
                 registerPingServiceHandlers();
@@ -210,6 +225,9 @@ public class MainActivity extends Activity {
             // enable input
             enableIpInput();
         } else {
+            // generate ping session Id
+            currentSessionId = UUID.randomUUID();
+
             // start probing;
             pingService.startPing(targetAddress);
 
@@ -275,12 +293,23 @@ public class MainActivity extends Activity {
     // Ping Service Event Handling
     //  UI
     private static HashMap<Integer, Integer> DATA_SET_COLORS;
+
+    public void showError(final String s) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(MainActivity.this, "ERROR: " + s, Toast.LENGTH_LONG);
+            }
+        });
+    }
+
     public class PlotHandler implements IPingCompletedEventHandler, IPingSessionStartedEventHandler {
 
         private static final int WINDOW_SIZE = 15;
         private static final int AVG_RTT_DATA_SET_INDEX = 0;
         private static final int MIN_RTT_DATA_SET_INDEX = 1;
         private static final int MAX_RTT_DATA_SET_INDEX = 2;
+        private static final int INVALID_RTT_DATA_SET_INDEX = 3; // TODO plot separately the values that are not valid (100% packet losses) - current Chart API cannot handle single point customization!
         private static final int LOSS_DATA_SET_INDEX = 0;
 
         private int getColor(int key) {
@@ -324,7 +353,7 @@ public class MainActivity extends Activity {
             appendPointToChart(plotRtt, AVG_RTT_DATA_SET_INDEX, result.getAvgRtt());
             appendPointToChart(plotRtt, MIN_RTT_DATA_SET_INDEX, result.getMinRtt());
             appendPointToChart(plotRtt, MAX_RTT_DATA_SET_INDEX, result.getMaxRtt());
-            appendPointToChart(plotLoss, LOSS_DATA_SET_INDEX, ((float) result.getPacketsLost()) / result.getPacketSent());
+            appendPointToChart(plotLoss, LOSS_DATA_SET_INDEX, ((float) result.getPacketsLost() * 100) / result.getPacketSent());
         }
 
         private void setDataSetStyle(LineDataSet dataSet, int lineColor) {
@@ -452,16 +481,14 @@ public class MainActivity extends Activity {
 
         private SavePingResultTask asyncPersistenceTask;
 
-        public PersistenceHandler() {
-            // create SavePingResultTask
-            // get Flyweight from Factory #TODO
-            // #TODO use SavePingResultTask
-        }
-
         @Override
         public void onPingCompleted(PingService.PingServiceBinder source, IPingResult result) {
+            // create SavePingResultTask
+            // N.B.: Tasks can be used only once (single use - single execute call)
+            asyncPersistenceTask = new SavePingResultTask(MainActivity.this, StaticRemoteResourcesEnum.PINGS.getURL());
+
             // send result to server
-            //asyncPersistenceTask.execute(result); #TODO
+            asyncPersistenceTask.execute(result);
         }
 
         public void onPingStopped() {

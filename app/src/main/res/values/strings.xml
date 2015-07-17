@@ -14,4 +14,7 @@
     <string name="error_invalid_target_ip">Invalid IP address</string>
 
     <string name="ping_service" >Ping Service</string>
+    <string name="title_activity_pings_history">PingsHistoryActivity</string>
+    <string name="action_back">Back</string>
+    <string name="title_activity_ping_history">PingHistoryActivity</string>
 </resources>

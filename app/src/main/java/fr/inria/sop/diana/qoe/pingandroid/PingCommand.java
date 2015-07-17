@@ -117,20 +117,37 @@ public class PingCommand {
     }
 
     private IPingResult parseOutput(String[] rows, InetAddress address) {
+        Log.i("SCANNER", "Scanning: \"" + rows[rows.length - 2] + "\"");
         Scanner scanner = new Scanner(rows[rows.length - 2]);
         int packetsSent = scanner.nextInt();
         scanner.skip(" packets transmitted, ");
         int packetsReceived = scanner.nextInt();
 
-        scanner = new Scanner(rows[rows.length - 1]);
-        scanner.useLocale(Locale.ENGLISH);
-        scanner.skip("rtt min/avg/max/mdev = ");
-        String[] tmp = scanner.next().split("/| ");
+        Log.i("SCANNER", "Scanning: \"" + rows[rows.length - 1] + "\"");
+        String rttRow = rows[rows.length - 1];
 
-        float minRttMs = Float.parseFloat(tmp[0]);
-        float avgRttMs = Float.parseFloat(tmp[1]);
-        float maxRttMs = Float.parseFloat(tmp[2]);
-        float meanDeviation = Float.parseFloat(tmp[3]);
+
+        float minRttMs;
+        float avgRttMs;
+        float maxRttMs;
+        float meanDeviation;
+
+        if(rttRow.equals("")) {
+            minRttMs = 0;
+            avgRttMs = 0;
+            maxRttMs = 0;
+            meanDeviation = 0;
+        } else {
+            scanner = new Scanner(rttRow);
+            scanner.useLocale(Locale.ENGLISH);
+            scanner.skip("rtt min/avg/max/mdev = ");
+            String[] tmp = scanner.next().split("/| ");
+
+            minRttMs = Float.parseFloat(tmp[0]);
+            avgRttMs = Float.parseFloat(tmp[1]);
+            maxRttMs = Float.parseFloat(tmp[2]);
+            meanDeviation = Float.parseFloat(tmp[3]);
+        }
 
         StringBuilder sb = new StringBuilder();
         for(String row : rows) {
