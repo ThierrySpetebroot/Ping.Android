@@ -33,6 +33,22 @@ public class NativePingCommand implements IPingCommand {
         _isRunning = value;
     }
 
+
+    private String checkErrors(InputStream in) throws IOException {
+        BufferedReader inReader = new BufferedReader(new InputStreamReader(in));
+        StringBuilder sb = new StringBuilder();
+
+        String s;
+        while ((s = inReader.readLine()) != null) {
+            sb.append(s);
+        }
+
+        if(sb.length() == 0)
+            return null;
+
+        return sb.toString();
+    }
+
     private String[] readStream(InputStream in, boolean isQuiet) {
         int rowsNumber = isQuiet? 1 + 4 : 1 + REQUEST_NUMBER + 4;
         int currentRowIndex = 0;
@@ -56,7 +72,7 @@ public class NativePingCommand implements IPingCommand {
         return null;
     }
 
-    public IPingResult execute(InetAddress address) throws InterruptedException {
+    public IPingResult execute(InetAddress address) throws InterruptedException, IOException {
         if(isRunning()) {
             throw new IllegalStateException("Command already running");
         }
@@ -79,14 +95,20 @@ public class NativePingCommand implements IPingCommand {
                         .start();
             } catch (IOException e) {
                 Log.e("Ping Command", "IOException: " + e.getStackTrace());
-                e.printStackTrace();
                 setIsRunning(false);
-                return null;
+                throw e;
             }
         }
 
         InputStream in = _process.getInputStream();
 //        OutputStream out = _process.getOutputStream();
+        InputStream err = _process.getErrorStream();
+
+        String res;
+        if((res = checkErrors(err)) != null) {
+            throw new IOException("Ping Error: " + res);
+        }
+        Log.i("Ping Command", "Read: \"" + res + "\"");
 
         rows = readStream(in, true);
 
@@ -117,6 +139,7 @@ public class NativePingCommand implements IPingCommand {
     }
 
     private IPingResult parseOutput(String[] rows, InetAddress address) {
+        Log.i("SCANNER", "Scanning: " + rows);
         Log.i("SCANNER", "Scanning: \"" + rows[rows.length - 2] + "\"");
         Scanner scanner = new Scanner(rows[rows.length - 2]);
         int packetsSent = scanner.nextInt();

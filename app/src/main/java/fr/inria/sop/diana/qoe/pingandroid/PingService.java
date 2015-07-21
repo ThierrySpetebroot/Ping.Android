@@ -6,6 +6,7 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
@@ -58,6 +59,10 @@ public class PingService extends Service {
                             notifyPingCompletedEvent(result);
                         } catch (InterruptedException e) {
                             // Ping Stopped, stop requested externally
+                            break;
+                        } catch (IOException e) {
+                            Log.e("Ping Service", "Ping Command failed: " + e.getStackTrace());
+                            // TODO define observer for errors
                             break;
                         }
                         try {

@@ -1,5 +1,6 @@
 package fr.inria.sop.diana.qoe.pingandroid;
 
+import java.io.IOException;
 import java.net.InetAddress;
 
 /**
@@ -8,6 +9,6 @@ import java.net.InetAddress;
 public interface IPingCommand {
     public boolean isRunning();
 
-    public IPingResult execute(InetAddress address) throws InterruptedException;
+    public IPingResult execute(InetAddress address) throws InterruptedException, IOException;
     public void cancel();
 }

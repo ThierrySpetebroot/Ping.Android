@@ -33,6 +33,7 @@ import java.util.UUID;
 
 import fr.inria.sop.diana.qoe.pingandroid.IPingCompletedEventHandler;
 import fr.inria.sop.diana.qoe.pingandroid.IPingResult;
+import fr.inria.sop.diana.qoe.pingandroid.IPingService;
 import fr.inria.sop.diana.qoe.pingandroid.IPingSessionStartedEventHandler;
 import fr.inria.sop.diana.qoe.pingandroid.NativePingResult;
 import fr.inria.sop.diana.qoe.pingandroid.NativePingCommand;
@@ -132,7 +133,7 @@ public class MainActivity extends Activity {
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // Ping Service definition
     protected boolean pingServiceBounded = false;
-    protected PingService.PingServiceBinder pingService = null;
+    protected IPingService pingService = null;
     protected ServiceConnection pingServiceConnection = null;
     protected IPingCompletedEventHandler[] pingCompletedObservers;
     protected IPingSessionStartedEventHandler[] pingSessionStartedObservers = new IPingSessionStartedEventHandler[] { };
@@ -189,7 +190,7 @@ public class MainActivity extends Activity {
                 Toast.makeText(MainActivity.this, "Ping Service is connected", Toast.LENGTH_LONG).show();
                 Log.i("Main", "Ping Service Connected");
                 pingServiceBounded = true;
-                pingService = (PingService.PingServiceBinder) service;
+                pingService = (IPingService) service;
                 if(!pingService.isPinging()) {
                     pingService.init(new NativePingCommand(), PING_WAIT_TIME);
                 }
@@ -273,6 +274,7 @@ public class MainActivity extends Activity {
                 if (!Patterns.IP_ADDRESS.matcher(s).matches()) {
                     ipTextInput.setError(getResources().getString(R.string.error_invalid_target_ip));
                     ipTextInput.setBackgroundColor(getResources().getColor(R.color.error_background));
+                    targetAddress = null;
                     return;
                 }
 
@@ -315,7 +317,7 @@ public class MainActivity extends Activity {
         private static final int AVG_RTT_DATA_SET_INDEX = 0;
         private static final int MIN_RTT_DATA_SET_INDEX = 1;
         private static final int MAX_RTT_DATA_SET_INDEX = 2;
-        private static final int INVALID_RTT_DATA_SET_INDEX = 3; // TODO plot separately the values that are not valid (100% packet losses) - current Chart API cannot handle single point customization!
+        // private static final int INVALID_RTT_DATA_SET_INDEX = 3; // TODO plot separately the values that are not valid (100% packet losses) - current Chart API cannot handle single point customization!
         private static final int LOSS_DATA_SET_INDEX = 0;
 
         private int getColor(int key) {
@@ -368,7 +370,7 @@ public class MainActivity extends Activity {
             dataSet.setColor(lineColor);
         }
 
-        public void onPingSessionStarted(PingService.PingServiceBinder source) {
+        public void onPingSessionStarted(IPingService source) {
             // initialize Results UI
             Log.i("MAIN", "PING SESSION STARTED");
             MainActivity.this.runOnUiThread(new Runnable() {
@@ -429,7 +431,7 @@ public class MainActivity extends Activity {
         }
 
         @Override
-        public void onPingCompleted(PingService.PingServiceBinder source, final IPingResult result) {
+        public void onPingCompleted(IPingService source, final IPingResult result) {
             // append point in graph
             MainActivity.this.runOnUiThread(new Runnable() {
 
@@ -488,7 +490,7 @@ public class MainActivity extends Activity {
         private SavePingResultTask asyncPersistenceTask;
 
         @Override
-        public void onPingCompleted(PingService.PingServiceBinder source, IPingResult result) {
+        public void onPingCompleted(IPingService source, IPingResult result) {
             // create SavePingResultTask
             // N.B.: Tasks can be used only once (single use - single execute call)
             asyncPersistenceTask = new SavePingResultTask(MainActivity.this, StaticRemoteResourcesEnum.PINGS.getURL());
@@ -497,10 +499,10 @@ public class MainActivity extends Activity {
             asyncPersistenceTask.execute(result);
         }
 
-        public void onPingStopped() {
-            // close connection (flush)
-            // asyncPersistenceTask.close();
-        }
+//        public void onPingStopped() {
+//            // close connection (flush)
+//            // asyncPersistenceTask.close();
+//        }
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////
 }
